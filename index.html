@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Försäljningsdashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js Matrix Plugin for heatmap -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@4.0.2/dist/chartjs-chart-matrix.umd.min.js"></script>
+  <style>
+    body { background: #f7f7fa; }
+    .dashboard-card {
+      box-shadow: 0 4px 12px rgba(60,60,90,0.08);
+      background: #fff; border-radius: 1rem;
+      margin-bottom: 2rem; padding: 2rem 1.5rem;
+    }
+    .tab-pane { margin-top: 1.5rem; }
+    .form-label { font-weight: 500; }
+    table { background: #fff; border-radius: 0.5rem; overflow: hidden; }
+    th { background: #f3f6fa; }
+    .heatmap-legend {
+      display: flex; gap: 4px; align-items: center; font-size: 0.95em;
+    }
+    .heatmap-legend span {
+      width: 22px; height: 15px; display: inline-block; border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-4">
+    <h1 class="mb-4 text-center">Försäljningsdashboard</h1>
+    <ul class="nav nav-tabs" id="personTabs" role="tablist">
+      <li class="nav-item" role="presentation"><button class="nav-link active" id="team-tab" data-bs-toggle="tab" data-bs-target="#Team" type="button" role="tab">Team</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="anton-tab" data-bs-toggle="tab" data-bs-target="#Anton" type="button" role="tab">Anton</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="erik-tab" data-bs-toggle="tab" data-bs-target="#Erik" type="button" role="tab">Erik</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="jonas-tab" data-bs-toggle="tab" data-bs-target="#Jonas" type="button" role="tab">Jonas</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="lindamarie-tab" data-bs-toggle="tab" data-bs-target="#Lindamarie" type="button" role="tab">Lindamarie</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="jesper-tab" data-bs-toggle="tab" data-bs-target="#Jesper" type="button" role="tab">Jesper</button></li>
+      <li class="nav-item" role="presentation"><button class="nav-link" id="richard-tab" data-bs-toggle="tab" data-bs-target="#Richard" type="button" role="tab">Richard</button></li>
+    </ul>
+    <div class="tab-content">
+
+      <!-- Team Dashboard -->
+      <div class="tab-pane fade show active" id="Team" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Teamets Försäljningsdashboard</h2>
+          <canvas id="teamBarChart" height="120"></canvas>
+          <div class="my-5">
+            <h4 class="mb-3">Summering per medlem och kategori</h4>
+            <canvas id="teamGroupedBarChart" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Person Dashboards -->
+      <!-- Kopiera det här blocket och byt namn/id till Erik, Jonas, Lindamarie, Jesper, Richard nedan -->
+      <!-- ANTON -->
+      <div class="tab-pane fade" id="Anton" role="tabpanel">
+        <!-- ... exakt samma som för Erik/Jonas/Lindamarie/Jesper/Richard ... -->
+        <!-- ... denna kod för dashboard återanvänds för samtliga personer ... -->
+        <div class="dashboard-card">
+          <h2 class="mb-3">Anton Dashboard</h2>
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekAnton">Vecka</label>
+              <input class="form-control" type="number" id="weekAnton" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsAnton">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsAnton">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsAnton">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsAnton">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonAnton">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonAnton">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Anton')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsAnton">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsAnton">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsAnton">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsAnton">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonAnton">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonAnton">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Anton')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="AntonBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="AntonHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="AntonTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="AntonTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="AntonTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- ERIK -->
+      <div class="tab-pane fade" id="Erik" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Erik Dashboard</h2>
+          <!-- ... exakt samma block som Anton, byt Anton till Erik i alla id och funktioner ... -->
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekErik">Vecka</label>
+              <input class="form-control" type="number" id="weekErik" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsErik">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsErik">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsErik">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsErik">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonErik">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonErik">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Erik')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsErik">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsErik">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsErik">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsErik">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonErik">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonErik">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Erik')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="ErikBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="ErikHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="ErikTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="ErikTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="ErikTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- JONAS -->
+      <div class="tab-pane fade" id="Jonas" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Jonas Dashboard</h2>
+          <!-- ... exakt samma block som Anton, byt Anton till Jonas i alla id och funktioner ... -->
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekJonas">Vecka</label>
+              <input class="form-control" type="number" id="weekJonas" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsJonas">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsJonas">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsJonas">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsJonas">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonJonas">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonJonas">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Jonas')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsJonas">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsJonas">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsJonas">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsJonas">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonJonas">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonJonas">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Jonas')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="JonasBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="JonasHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="JonasTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="JonasTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="JonasTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- LINDAMARIE -->
+      <div class="tab-pane fade" id="Lindamarie" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Lindamarie Dashboard</h2>
+          <!-- ... exakt samma block som Anton, byt Anton till Lindamarie i alla id och funktioner ... -->
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekLindamarie">Vecka</label>
+              <input class="form-control" type="number" id="weekLindamarie" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsLindamarie">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsLindamarie">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsLindamarie">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsLindamarie">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonLindamarie">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonLindamarie">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Lindamarie')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsLindamarie">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsLindamarie">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsLindamarie">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsLindamarie">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonLindamarie">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonLindamarie">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Lindamarie')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="LindamarieBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="LindamarieHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="LindamarieTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="LindamarieTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="LindamarieTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- JESPER -->
+      <div class="tab-pane fade" id="Jesper" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Jesper Dashboard</h2>
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekJesper">Vecka</label>
+              <input class="form-control" type="number" id="weekJesper" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsJesper">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsJesper">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsJesper">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsJesper">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonJesper">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonJesper">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Jesper')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsJesper">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsJesper">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsJesper">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsJesper">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonJesper">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonJesper">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Jesper')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="JesperBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="JesperHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="JesperTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="JesperTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="JesperTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- RICHARD -->
+      <div class="tab-pane fade" id="Richard" role="tabpanel">
+        <div class="dashboard-card">
+          <h2 class="mb-3">Richard Dashboard</h2>
+          <form class="row g-3 mb-4" onsubmit="return false;">
+            <div class="col-2">
+              <label class="form-label" for="weekRichard">Vecka</label>
+              <input class="form-control" type="number" id="weekRichard" min="1" max="52">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="callsRichard">Kalla samtal</label>
+              <input class="form-control" type="number" id="callsRichard">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="meetingsRichard">Nykundsmöten</label>
+              <input class="form-control" type="number" id="meetingsRichard">
+            </div>
+            <div class="col-2">
+              <label class="form-label" for="wonRichard">Vunna kunder</label>
+              <input class="form-control" type="number" id="wonRichard">
+            </div>
+            <div class="col-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="button" onclick="savePerson('Richard')">Spara aktivitet</button>
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalCallsRichard">Mål (Kalla samtal/år)</label>
+              <input class="form-control" type="number" id="goalCallsRichard">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalMeetingsRichard">Mål (Nykundsmöten/år)</label>
+              <input class="form-control" type="number" id="goalMeetingsRichard">
+            </div>
+            <div class="col-4">
+              <label class="form-label" for="goalWonRichard">Mål (Vunna kunder/år)</label>
+              <input class="form-control" type="number" id="goalWonRichard">
+            </div>
+            <div class="col-12 d-flex align-items-end justify-content-end">
+              <button class="btn btn-outline-success ms-auto" type="button" onclick="saveGoals('Richard')">Spara mål</button>
+            </div>
+          </form>
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div>
+                <h5>Aktiviteter per vecka vs. mål (12 mån snitt)</h5>
+                <canvas id="RichardBarChart" height="180"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5 mb-4">
+              <div>
+                <h5>Heatmap: Aktiviteter per vecka</h5>
+                <canvas id="RichardHeatmap" height="180"></canvas>
+                <div class="heatmap-legend mt-2">
+                  <span style="background:#e3f2fd"></span> 0&nbsp;
+                  <span style="background:#bbdefb"></span> 1-2&nbsp;
+                  <span style="background:#64b5f6"></span> 3-4&nbsp;
+                  <span style="background:#1976d2"></span> 5+
+                </div>
+              </div>
+            </div>
+          </div>
+          <h5 class="mt-4">Registrerade Aktiviteter</h5>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0" id="RichardTable">
+              <thead>
+                <tr>
+                  <th>Vecka</th>
+                  <th>Kalla samtal</th>
+                  <th>Nykundsmöten</th>
+                  <th>Vunna kunder</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">
+            Summa aktiviteter: <span id="RichardTotalActivities">0</span><br>
+            Mål (kalla samtal): <span id="RichardTotalGoalCalls">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const PERSONS = [
+      { name: "Anton", color: "#457b9d" },
+      { name: "Erik", color: "#e76f51" },
+      { name: "Jonas", color: "#2a9d8f" },
+      { name: "Lindamarie", color: "#f4a261" },
+      { name: "Jesper", color: "#8e44ad" },
+      { name: "Richard", color: "#0097a7" }
+    ];
+    const WEEKS = Array.from({length:52}, (_,i) => i+1);
+    const LOCAL_STORAGE_VERSION = "v5";
+
+    function storeKey(person, key) { return `${person}${key}_${LOCAL_STORAGE_VERSION}`; }
+    function getActivities(person) {
+      return JSON.parse(localStorage.getItem(storeKey(person, 'Activities')) || '[]');
+    }
+    function getGoals(person) {
+      return JSON.parse(localStorage.getItem(storeKey(person, 'Goals')) || '{"calls":"0","meetings":"0","won":"0"}');
+    }
+    function setActivities(person, activities) {
+      localStorage.setItem(storeKey(person, 'Activities'), JSON.stringify(activities));
+    }
+    function setGoals(person, goals) {
+      localStorage.setItem(storeKey(person, 'Goals'), JSON.stringify(goals));
+    }
+
+    window.savePerson = function(person) {
+      let week = +document.getElementById('week' + person).value;
+      let calls = +document.getElementById('calls' + person).value || 0;
+      let meetings = +document.getElementById('meetings' + person).value || 0;
+      let won = +document.getElementById('won' + person).value || 0;
+      if (!(week >= 1 && week <= 52)) return alert("Ange en giltig vecka (1-52).");
+      let activity = { week, calls, meetings, won };
+      let activities = getActivities(person);
+      activities.push(activity);
+      setActivities(person, activities);
+      renderPerson(person);
+      renderTeamBarChart();
+      renderTeamGroupedBarChart();
+      resetForm(person);
+    };
+
+    window.saveGoals = function(person) {
+      let goals = {
+        calls: document.getElementById('goalCalls' + person).value || '0',
+        meetings: document.getElementById('goalMeetings' + person).value || '0',
+        won: document.getElementById('goalWon' + person).value || '0'
+      };
+      setGoals(person, goals);
+      renderPerson(person);
+      renderTeamBarChart();
+      renderTeamGroupedBarChart();
+    };
+
+    window.deleteActivity = function(person, i) {
+      let activities = getActivities(person);
+      activities.splice(i, 1);
+      setActivities(person, activities);
+      renderPerson(person);
+      renderTeamBarChart();
+      renderTeamGroupedBarChart();
+    };
+
+    function resetForm(person) {
+      document.getElementById('week' + person).value = '';
+      document.getElementById('calls' + person).value = '';
+      document.getElementById('meetings' + person).value = '';
+      document.getElementById('won' + person).value = '';
+    }
+
+    function renderPerson(person) {
+      let activities = getActivities(person);
+      let goals = getGoals(person);
+
+      let tbody = document.querySelector(`#${person}Table tbody`);
+      tbody.innerHTML = "";
+      activities.forEach((act, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${act.week}</td>
+            <td>${act.calls}</td>
+            <td>${act.meetings}</td>
+            <td>${act.won}</td>
+            <td><button onclick="deleteActivity('${person}',${i})" class="btn btn-sm btn-outline-danger" title="Ta bort">&#10005;</button></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById(person + 'TotalActivities').innerText = activities.length;
+      document.getElementById(person + 'TotalGoalCalls').innerText = goals.calls;
+
+      document.getElementById('goalCalls' + person).value = goals.calls;
+      document.getElementById('goalMeetings' + person).value = goals.meetings;
+      document.getElementById('goalWon' + person).value = goals.won;
+
+      drawPersonBarChart(person, activities, goals);
+      drawPersonHeatmap(person, activities);
+    }
+
+    function drawPersonBarChart(person, activities, goals) {
+      // Bygg om till "grouped bar" med tre staplar per vecka (och linje för respektive mål)
+      let weekMap = {};
+      WEEKS.forEach(w => weekMap[w] = {calls:0, meetings:0, won:0});
+      activities.forEach(a => {
+        if (weekMap[a.week]) {
+          weekMap[a.week].calls += +a.calls;
+          weekMap[a.week].meetings += +a.meetings;
+          weekMap[a.week].won += +a.won;
+        }
+      });
+      let weekLabels = WEEKS;
+
+      let goalCallsWeek = (+goals.calls || 0) / 52;
+      let goalMeetingsWeek = (+goals.meetings || 0) / 52;
+      let goalWonWeek = (+goals.won || 0) / 52;
+
+      let dataCalls = weekLabels.map(w => weekMap[w].calls);
+      let dataMeetings = weekLabels.map(w => weekMap[w].meetings);
+      let dataWon = weekLabels.map(w => weekMap[w].won);
+      let dataGoalCalls = weekLabels.map(()=>goalCallsWeek);
+      let dataGoalMeetings = weekLabels.map(()=>goalMeetingsWeek);
+      let dataGoalWon = weekLabels.map(()=>goalWonWeek);
+
+      if (window[person + "BarChartInst"]) window[person + "BarChartInst"].destroy();
+      let ctx = document.getElementById(person + "BarChart").getContext("2d");
+      window[person + "BarChartInst"] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: weekLabels,
+          datasets: [
+            { label: "Kalla samtal", data: dataCalls, backgroundColor: "#2196f3", borderRadius: 6 },
+            { label: "Nykundsmöten", data: dataMeetings, backgroundColor: "#43a047", borderRadius: 6 },
+            { label: "Vunna kunder", data: dataWon, backgroundColor: "#fb8c00", borderRadius: 6 },
+            { label: "Mål (Kalla samtal, snitt/vecka)", data: dataGoalCalls, borderColor: "#2196f3", backgroundColor: "rgba(33,150,243,0.2)", type: 'line', borderWidth: 2, pointRadius: 0, fill: false, order: 1 },
+            { label: "Mål (Nykundsmöten, snitt/vecka)", data: dataGoalMeetings, borderColor: "#43a047", backgroundColor: "rgba(67,160,71,0.2)", type: 'line', borderWidth: 2, pointRadius: 0, fill: false, order: 1 },
+            { label: "Mål (Vunna kunder, snitt/vecka)", data: dataGoalWon, borderColor: "#fb8c00", backgroundColor: "rgba(251,140,0,0.2)", type: 'line', borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false }, title: { display: true, text: "Vecka" }, stacked: false },
+            y: { beginAtZero: true, title: { display: true, text: "Antal" } }
+          }
+        }
+      });
+    }
+
+    function drawPersonHeatmap(person, activities) {
+      let weekMap = {};
+      WEEKS.forEach(w => weekMap[w] = {calls:0, meetings:0, won:0});
+      activities.forEach(a => {
+        if (weekMap[a.week]) {
+          weekMap[a.week].calls += +a.calls;
+          weekMap[a.week].meetings += +a.meetings;
+          weekMap[a.week].won += +a.won;
+        }
+      });
+
+      let data = [];
+      WEEKS.forEach(w => {
+        data.push({ x: w, y: 1, v: weekMap[w].calls });
+        data.push({ x: w, y: 2, v: weekMap[w].meetings });
+        data.push({ x: w, y: 3, v: weekMap[w].won });
+      });
+
+      function heatColor(v) {
+        if (v >= 5) return "#1976d2";
+        if (v >= 3) return "#64b5f6";
+        if (v >= 1) return "#bbdefb";
+        return "#e3f2fd";
+      }
+
+      if (window[person + "HeatmapInst"]) window[person + "HeatmapInst"].destroy();
+      let ctx = document.getElementById(person + "Heatmap").getContext("2d");
+      window[person + "HeatmapInst"] = new Chart(ctx, {
+        type: 'matrix',
+        data: {
+          datasets: [{
+            label: "Veckovis aktivitet",
+            data: data,
+            width: ({chart}) => (chart.chartArea || {}).width / 52 - 1,
+            height: 30,
+            backgroundColor: ctx => heatColor(ctx.raw.v),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: ctx => {
+                  const cat = ctx[0].raw.y === 1 ? 'Kalla samtal' : ctx[0].raw.y === 2 ? 'Nykundsmöten' : 'Vunna kunder';
+                  return `Vecka ${ctx[0].raw.x} – ${cat}`;
+                },
+                label: ctx => `Antal: ${ctx.raw.v}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: "linear", min: 1, max: 52, ticks: { stepSize: 5 },
+              grid: { display: false }, title: { display: true, text: "Vecka" }
+            },
+            y: {
+              type: "linear", min: 0.5, max: 3.5, ticks: {
+                callback: y => ["","Kalla samtal","Nykundsmöten","Vunna kunder"][y] || "",
+                stepSize: 1
+              },
+              grid: { display: false }, title: { display: true, text: "Kategori" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTeamBarChart() {
+      let allData = PERSONS.map(p => {
+        let acts = getActivities(p.name);
+        let totalCalls = acts.reduce((s,a) => s + (+a.calls || 0), 0);
+        let totalMeetings = acts.reduce((s,a) => s + (+a.meetings || 0), 0);
+        let totalWon = acts.reduce((s,a) => s + (+a.won || 0), 0);
+        let goal = getGoals(p.name);
+        return {
+          label: p.name,
+          calls: totalCalls,
+          meetings: totalMeetings,
+          won: totalWon,
+          callsGoal: Number(goal.calls || 0),
+          meetingsGoal: Number(goal.meetings || 0),
+          wonGoal: Number(goal.won || 0),
+          color: p.color
+        };
+      });
+      let barLabels = allData.map(d => d.label);
+
+      if (window.teamBarChartInst) window.teamBarChartInst.destroy();
+      let ctx = document.getElementById("teamBarChart").getContext("2d");
+      window.teamBarChartInst = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: barLabels,
+          datasets: [
+            { label: "Kalla samtal", data: allData.map(d => d.calls), backgroundColor: "#2196f3" },
+            { label: "Nykundsmöten", data: allData.map(d => d.meetings), backgroundColor: "#43a047" },
+            { label: "Vunna kunder", data: allData.map(d => d.won), backgroundColor: "#fb8c00" },
+            { label: "Mål Kalla samtal (år)", data: allData.map(d => d.callsGoal), backgroundColor: "rgba(33,150,243,0.2)", type: 'line', borderColor: "#2196f3", borderWidth: 2, pointRadius: 0, fill: false, order: 1 },
+            { label: "Mål Nykundsmöten (år)", data: allData.map(d => d.meetingsGoal), backgroundColor: "rgba(67,160,71,0.2)", type: 'line', borderColor: "#43a047", borderWidth: 2, pointRadius: 0, fill: false, order: 1 },
+            { label: "Mål Vunna kunder (år)", data: allData.map(d => d.wonGoal), backgroundColor: "rgba(251,140,0,0.2)", type: 'line', borderColor: "#fb8c00", borderWidth: 2, pointRadius: 0, fill: false, order: 1 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false }, title: { display: true, text: "Medlem" } },
+            y: { beginAtZero: true, title: { display: true, text: "Antal" } }
+          }
+        }
+      });
+    }
+
+    // Nytt teamdiagram: summerade aktiviteter, 3 staplar per person
+    function renderTeamGroupedBarChart() {
+      let allData = PERSONS.map(p => {
+        let acts = getActivities(p.name);
+        let totalCalls = acts.reduce((s,a) => s + (+a.calls || 0), 0);
+        let totalMeetings = acts.reduce((s,a) => s + (+a.meetings || 0), 0);
+        let totalWon = acts.reduce((s,a) => s + (+a.won || 0), 0);
+        return {
+          label: p.name,
+          calls: totalCalls,
+          meetings: totalMeetings,
+          won: totalWon
+        };
+      });
+      let barLabels = allData.map(d => d.label);
+
+      // Destroy previous chart if exists
+      if (window.teamGroupedBarChartInst) window.teamGroupedBarChartInst.destroy();
+      let ctx = document.getElementById("teamGroupedBarChart").getContext("2d");
+      window.teamGroupedBarChartInst = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: barLabels,
+          datasets: [
+            {
+              label: "Kalla samtal",
+              data: allData.map(d => d.calls),
+              backgroundColor: "#2196f3"
+            },
+            {
+              label: "Nykundsmöten",
+              data: allData.map(d => d.meetings),
+              backgroundColor: "#43a047"
+            },
+            {
+              label: "Vunna kunder",
+              data: allData.map(d => d.won),
+              backgroundColor: "#fb8c00"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false }, title: { display: true, text: "Medlem" } },
+            y: { beginAtZero: true, title: { display: true, text: "Antal" } }
+          }
+        }
+      });
+    }
+
+    function renderAll() {
+      PERSONS.forEach(p => renderPerson(p.name));
+      renderTeamBarChart();
+      renderTeamGroupedBarChart();
+    }
+    window.renderAll = renderAll;
+
+    window.addEventListener('DOMContentLoaded', renderAll);
+  </script>
+</body>
+</html>
